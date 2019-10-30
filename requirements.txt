@@ -1,0 +1,5 @@
+PyQt5>=5.13.1
+PyQtWebEngine>=5.13.1
+requests>=2.22.0
+
+
