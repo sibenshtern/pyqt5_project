@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         # get homepage from sqlite table
-        self.homepage = get_homepage() # function from functions
+        self.homepage = get_homepage()  # function from functions
         self.get_statistic = True
 
         # Connect database
@@ -89,6 +89,15 @@ class MainWindow(QMainWindow):
         self.url_bar.setFont(font)
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         nav_bar.addWidget(self.url_bar)
+
+        # Create and customize menu
+        file_menu = self.menuBar().addMenu('File')
+
+        new_tab_action = QAction(QIcon(get_image('add_tab.svg')), 'New tab',
+                                 self)
+        new_tab_action.setStatusTip('Open a new tab')
+        new_tab_action.triggered.connect(lambda: self.add_new_tab())
+        file_menu.addAction(new_tab_action)
 
         self.add_new_tab()
 
@@ -185,6 +194,9 @@ class MainWindow(QMainWindow):
     def go_to_homepage(self):
         """Changes url for current tab to self.homepage."""
         self.tabs.currentWidget().setUrl(QUrl(self.homepage))
+
+    # Functions for correct work menu
+    # Nothing :)
 
 
 class WebEnginePage(QWebEnginePage):
