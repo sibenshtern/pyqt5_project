@@ -99,6 +99,13 @@ class MainWindow(QMainWindow):
         new_tab_action.triggered.connect(lambda: self.add_new_tab())
         file_menu.addAction(new_tab_action)
 
+        help_menu = self.menuBar().addMenu('Help')
+
+        about_action = QAction(QIcon(get_image('info.svg')), 'About', self)
+        about_action.setStatusTip('Find out more about Browser')
+        about_action.triggered.connect(self.about_dialog)
+        help_menu.addAction()
+
         self.add_new_tab()
 
     # Functions for tab bar correct work
