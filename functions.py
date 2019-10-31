@@ -22,6 +22,29 @@ def create_database():
         con.close()
 
 
+def statistic(browser):
+    """Change the database. Counts how many times a site has been visited."""
+    con = sqlite3.connect('database.sql')
+    cur = con.cursor()
+
+    url = browser.url().toString()
+    if not url.startswith('https://google.com/search'):
+        result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
+                             (url,)).fetchone()
+
+        if result[0] == 0:
+            cur.execute("INSERT INTO Pages('url', 'count') VALUES(?, 1)",
+                        (url,))
+            con.commit()
+        else:
+            result = cur.execute("SELECT id, count FROM Pages WHERE url = ?",
+                                 (url,)).fetchone()
+            page_id, count = result
+            cur.execute("UPDATE Pages SET count = ? WHERE id = ?",
+                        (count + 1, page_id))
+            con.commit()
+
+
 def get_path(directory, file):
     return os.path.join(directory, file)
 

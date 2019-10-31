@@ -16,7 +16,13 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         # get homepage from sqlite table
-        self.homepage = get_homepage()  # function from functions
+        self.homepage = get_homepage() # function from functions
+        self.get_statistic = True
+
+        # Connect database
+        self.con = sqlite3.connect('database.sql')
+        self.cur = self.con.cursor()
+
         self.initUI()
 
     def initUI(self):
@@ -116,6 +122,10 @@ class MainWindow(QMainWindow):
         qurl = self.tabs.currentWidget().url()
         self.update_url_bar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
+
+        if self.get_statistic:
+            if not qurl.toString().startswith('https://google.com/search'):
+                statistic(self.tabs.currentWidget())
 
     def tab_open_doubleclick(self, index):
         if index == -1:  # No tab under the click
