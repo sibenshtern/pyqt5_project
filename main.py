@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
         about_action = QAction(QIcon(get_image('info.svg')), 'About', self)
         about_action.setStatusTip('Find out more about Browser')
         about_action.triggered.connect(self.about_dialog)
-        help_menu.addAction()
+        help_menu.addAction(about_action)
 
         self.add_new_tab()
 
@@ -203,7 +203,9 @@ class MainWindow(QMainWindow):
         self.tabs.currentWidget().setUrl(QUrl(self.homepage))
 
     # Functions for correct work menu
-    # Nothing :)
+    def about_dialog(self):
+        dialog = AboutDialog()
+        dialog.exec_()
 
 
 class WebEnginePage(QWebEnginePage):
@@ -230,6 +232,33 @@ class TabBar(QTabBar):
         else:
             size = QTabBar.tabSizeHint(self, index)
             return QSize(size.width(), size.height())
+
+
+class AboutDialog(QDialog):
+
+    def __init__(self, *args, **kwargs):
+        super(AboutDialog, self).__init__(*args, **kwargs)
+
+        QButton = QDialogButtonBox.Ok
+        self.buttonBox = QDialogButtonBox(QButton)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        main_layout = QVBoxLayout()
+
+        title = QLabel("Sibenshtern's Browser")
+
+        # Create and customize font
+        font = title.font()
+        font.setPointSize(20)
+        title.setFont(font)
+
+        main_layout.addWidget(title, alignment=Qt.AlignHCenter)
+        main_layout.addWidget(QLabel("Version 1.0.0"),
+                              alignment=Qt.AlignHCenter)
+        main_layout.addWidget(self.buttonBox, alignment=Qt.AlignHCenter)
+
+        self.setLayout(main_layout)
 
 
 if __name__ == '__main__':
