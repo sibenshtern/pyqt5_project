@@ -5,7 +5,6 @@ import requests
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtPrintSupport import *
 from PyQt5.QtWebEngineWidgets import *
 
 from functions import *
@@ -15,7 +14,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.get_statistic = True
+        self.collect_statistic = True
 
         # Connect database
         self.con = sqlite3.connect('database.sql')
@@ -154,7 +153,7 @@ class MainWindow(QMainWindow):
         self.update_url_bar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
 
-        if self.get_statistic:
+        if self.collect_statistic:
             if not qurl.toString().startswith('https://google.com/search'):
                 statistic(self.tabs.currentWidget())
 
@@ -223,6 +222,11 @@ class MainWindow(QMainWindow):
         dialog = AboutDialog()
         dialog.exec_()
 
+    @staticmethod
+    def setting_dialog():
+        dialog = SettingDialog()
+        dialog.exec_()
+
     # Special functions
     def get_url(self):
         return self.tabs.currentWidget().url().toString()
@@ -243,6 +247,17 @@ class MainWindow(QMainWindow):
                 self.go_to_homepage()
             elif sender == 'new_homepage_button':
                 change_homepage(self.get_url())
+            elif sender == 'setting_action':
+                self.setting_dialog()
+        else:
+            if sender == 'setting_action':
+                self.setting_dialog()
+
+    def change_variable(self, state):
+        if state == Qt.Checked:
+            self.collect_statistic = True
+        else:
+            self.collect_statistic = False
 
 
 class WebEnginePage(QWebEnginePage):
@@ -268,7 +283,7 @@ class TabBar(QTabBar):
             return QSize(int(self.width() / self.count()), height)
         else:
             size = QTabBar.tabSizeHint(self, index)
-            return QSize(size.width(), size.height())
+            return QSize(size.width(), height)
 
 
 class AboutDialog(QDialog):
@@ -296,6 +311,74 @@ class AboutDialog(QDialog):
         main_layout.addWidget(self.buttonBox, alignment=Qt.AlignHCenter)
 
         self.setLayout(main_layout)
+
+
+class SettingDialog(QDialog):
+
+    def __init__(self, *args, **kwargs):
+        super(SettingDialog, self).__init__(*args, **kwargs)
+
+        # Connect database
+        self.con = sqlite3.connect('database.sql')
+        self.cur = self.con.cursor()
+
+        self.initUI()
+
+    def initUI(self):
+        # Fonts
+        headline_font = QFont('sans-serif')  # font for headline
+        headline_font.setPointSize(24)
+
+        other_font = QFont('sans-serif')
+        other_font.setPointSize(16)
+
+        # Widgets
+        self.table_widget = QTableWidget()
+
+        headline = self.headline = QLabel('Settings')
+        headline.setFont(headline_font)
+
+        collect_statistic = self.collect_statistic = \
+            QCheckBox('Collect statistic')
+        collect_statistic.setFont(other_font)
+        collect_statistic.toggle()
+        collect_statistic.stateChanged.connect(window.change_variable)
+
+        statistic_button = QPushButton('See statistic')
+        statistic_button.clicked.connect(self.show_table)
+
+        # Layouts
+        main_layout = QHBoxLayout()
+
+        self.settings_layout = QVBoxLayout()
+        self.settings_layout.addWidget(headline, alignment=Qt.AlignLeft)
+        self.settings_layout.addWidget(collect_statistic,
+                                       alignment=Qt.AlignHCenter)
+        self.settings_layout.addWidget(statistic_button,
+                                       alignment=Qt.AlignHCenter)
+
+        main_layout.addLayout(self.settings_layout)
+        main_layout.setAlignment(Qt.AlignHCenter)
+
+        self.setLayout(main_layout)
+
+    def show_table(self):
+        result = self.cur.execute('Select * from Pages').fetchall()
+
+        self.table_widget.setRowCount(len(result))
+        self.table_widget.setColumnCount(len(result[0]))
+
+        self.titles = [description[0] for description in self.cur.description]
+        self.table_widget.setHorizontalHeaderLabels(self.titles)
+
+        for i, elem in enumerate(result):
+            for j, val in enumerate(elem):
+                self.table_widget.setItem(i, j, QTableWidgetItem(str(val)))
+
+        self.table_widget.resizeColumnsToContents()
+        self.settings_layout.addWidget(self.table_widget,
+                                       alignment=Qt.AlignHCenter)
+        self.update()
 
 
 if __name__ == '__main__':
