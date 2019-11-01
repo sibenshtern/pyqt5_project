@@ -48,27 +48,29 @@ class MainWindow(QMainWindow):
         # Create and customize buttons(actions) for navigation bar
         back_button = QAction(QIcon(get_image('arrow_back.svg')),
                               'Previous page', self)
+        back_button.setObjectName('back_button')
         back_button.setStatusTip('Back to previous page')
-        back_button.triggered.connect(lambda: self.tabs.currentWidget().back())
+        back_button.triggered.connect(self.action)
         nav_bar.addAction(back_button)
 
         next_button = QAction(QIcon(get_image('arrow_forward.svg')),
                               'Next page', self)
+        next_button.setObjectName('next_button')
         next_button.setStatusTip('Forward to next page')
-        next_button.triggered.connect(lambda:
-                                      self.tabs.currentWidget().forward())
+        next_button.triggered.connect(self.action)
         nav_bar.addAction(next_button)
 
         reload_button = QAction(QIcon(get_image('refresh.svg')), 'Reload page',
                                 self)
+        reload_button.setObjectName('reload_button')
         reload_button.setStatusTip('Reload page')
-        reload_button.triggered.connect(lambda:
-                                        self.tabs.currentWidget().reload())
+        reload_button.triggered.connect(self.action)
         nav_bar.addAction(reload_button)
 
         home_button = QAction(QIcon(get_image('home.svg')), 'Homepage', self)
+        home_button.setObjectName('home_button')
         home_button.setStatusTip('Homepage')
-        home_button.triggered.connect(self.go_to_homepage)
+        home_button.triggered.connect(self.action)
         nav_bar.addAction(home_button)
 
         nav_bar.addSeparator()
@@ -89,13 +91,13 @@ class MainWindow(QMainWindow):
         nav_bar.addWidget(self.url_bar)
 
         new_homepage_button = QAction(QIcon(get_image('add_tab.svg')),
-                                      'Homepage', self)
+                                      'Make this page home', self)
+        new_homepage_button.setObjectName('new_homepage_button')
         new_homepage_button.setStatusTip('Make this page home')
-        new_homepage_button.triggered.connect(lambda:
-                                              change_homepage(self.get_url()))
+        new_homepage_button.triggered.connect(self.action)
         nav_bar.addAction(new_homepage_button)
 
-        # Create and customize menu
+        # Create and customize file menu
         file_menu = self.menuBar().addMenu('File')
 
         new_tab_action = QAction(QIcon(get_image('add_tab.svg')), 'New tab',
@@ -104,12 +106,23 @@ class MainWindow(QMainWindow):
         new_tab_action.triggered.connect(lambda: self.add_new_tab())
         file_menu.addAction(new_tab_action)
 
+        # Create and customize help menu
         help_menu = self.menuBar().addMenu('Help')
 
         about_action = QAction(QIcon(get_image('info.svg')), 'About', self)
         about_action.setStatusTip('Find out more about Browser')
         about_action.triggered.connect(self.about_dialog)
         help_menu.addAction(about_action)
+
+        # Create and customize setting menu
+        setting_menu = self.menuBar().addMenu('Setting')
+
+        setting_action = QAction(QIcon(get_image('settings_applications.svg')),
+                                 "Setting", self)
+        setting_action.setObjectName('setting_action')
+        setting_action.setStatusTip("Application setting")
+        setting_action.triggered.connect(self.action)
+        setting_menu.addAction(setting_action)
 
         self.add_new_tab()
 
@@ -187,7 +200,7 @@ class MainWindow(QMainWindow):
                 request = requests.get(url)
             else:
                 request = requests.get(f'http://{url}')
-        except Exception:
+        except Exception:  # It doesn't correct, but it work
             # If string isn't link, search string in search machine
             url = QUrl(f'https://google.com/search?q={url}')
             self.tabs.currentWidget().setUrl(url)
@@ -205,7 +218,8 @@ class MainWindow(QMainWindow):
         self.tabs.currentWidget().setUrl(QUrl(get_homepage()))
 
     # Functions for correct work menu
-    def about_dialog(self):
+    @staticmethod
+    def about_dialog():
         dialog = AboutDialog()
         dialog.exec_()
 
@@ -215,6 +229,20 @@ class MainWindow(QMainWindow):
 
     def get_qurl(self):
         return self.tabs.currentWidget().url()
+
+    def action(self):
+        sender = self.sender().objectName()
+        if type(self.tabs.currentWidget()) == QWebEngineView:
+            if sender == 'back_button':
+                self.tabs.currentWidget().back()
+            elif sender == 'next_button':
+                self.tabs.currentWidget().forward()
+            elif sender == 'reload_button':
+                self.tabs.currentWidget().reload()
+            elif sender == 'home_button':
+                self.go_to_homepage()
+            elif sender == 'new_homepage_button':
+                change_homepage(self.get_url())
 
 
 class WebEnginePage(QWebEnginePage):
