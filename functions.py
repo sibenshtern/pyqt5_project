@@ -15,7 +15,7 @@ def create_database():
         cur.execute("CREATE TABLE Pages(id INT, url STRING, count INT);")
         cur.execute("CREATE TABLE settings(name STRING, value STRING);")
         cur.execute('''INSERT INTO settings(name,value) 
-                       VALUES("homepage","https://www.google.com")''')
+                       VALUES("homepage","https://google.com")''')
         con.commit()
 
         cur.close()
@@ -43,6 +43,20 @@ def statistic(browser):
             cur.execute("UPDATE Pages SET count = ? WHERE id = ?",
                         (count + 1, page_id))
             con.commit()
+
+    cur.close()
+    con.close()
+
+
+def change_homepage(url):
+    con = sqlite3.connect('database.sql')
+    cur = con.cursor()
+
+    cur.execute("UPDATE settings SET value = ? WHERE name = 'homepage'", (url,))
+    con.commit()
+
+    cur.close()
+    con.close()
 
 
 def get_path(directory, file):
