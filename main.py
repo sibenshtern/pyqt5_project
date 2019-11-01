@@ -15,8 +15,6 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        # get homepage from sqlite table
-        self.homepage = get_homepage()  # function from functions
         self.get_statistic = True
 
         # Connect database
@@ -90,6 +88,13 @@ class MainWindow(QMainWindow):
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         nav_bar.addWidget(self.url_bar)
 
+        new_homepage_button = QAction(QIcon(get_image('add_tab.svg')),
+                                      'Homepage', self)
+        new_homepage_button.setStatusTip('Make this page home')
+        new_homepage_button.triggered.connect(lambda:
+                                              change_homepage(self.get_url()))
+        nav_bar.addAction(new_homepage_button)
+
         # Create and customize menu
         file_menu = self.menuBar().addMenu('File')
 
@@ -118,9 +123,6 @@ class MainWindow(QMainWindow):
 
         if qurl is None:
             qurl = QUrl("https://google.com")
-
-        if qurl == self.homepage:
-            title = 'Homepage'
 
         browser = QWebEngineView()
         page = WebEnginePage(browser)
@@ -200,12 +202,19 @@ class MainWindow(QMainWindow):
 
     def go_to_homepage(self):
         """Changes url for current tab to self.homepage."""
-        self.tabs.currentWidget().setUrl(QUrl(self.homepage))
+        self.tabs.currentWidget().setUrl(QUrl(get_homepage()))
 
     # Functions for correct work menu
     def about_dialog(self):
         dialog = AboutDialog()
         dialog.exec_()
+
+    # Special functions
+    def get_url(self):
+        return self.tabs.currentWidget().url().toString()
+
+    def get_qurl(self):
+        return self.tabs.currentWidget().url()
 
 
 class WebEnginePage(QWebEnginePage):
