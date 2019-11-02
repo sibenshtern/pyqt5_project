@@ -12,10 +12,12 @@ def create_database():
 
         con = sqlite3.connect('database.sql')
         cur = con.cursor()
-        cur.execute("CREATE TABLE Pages(id INT, url STRING, count INT);")
+        cur.execute("CREATE TABLE Pages(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    "url STRING, count INT);")
         cur.execute("CREATE TABLE settings(name STRING, value STRING);")
         cur.execute('''INSERT INTO settings(name,value) 
-                       VALUES("homepage","https://google.com")''')
+                       VALUES("homepage","https://google.com"), 
+                       ("collect statistic", "true")''')
         con.commit()
 
         cur.close()
@@ -59,6 +61,31 @@ def change_homepage(url):
     con.close()
 
 
+def change_variable(state):
+    con = sqlite3.connect('database.sql')
+    cur = con.cursor()
+
+    cur.execute("UPDATE settings SET value = ? "
+                "WHERE name = 'collect statistic'", (state,))
+    con.commit()
+
+    cur.close()
+    con.close()
+
+
+def clear_statistic():
+    con = sqlite3.connect('database.sql')
+    cur = con.cursor()
+
+    cur.execute("DROP TABLE IF EXISTS Pages")
+    cur.execute("CREATE TABLE Pages(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "url STRING, count INT);")
+    con.commit()
+
+    cur.close()
+    con.close()
+
+
 def get_path(directory, file):
     return os.path.join(directory, file)
 
@@ -72,7 +99,21 @@ def get_homepage():
     cur = con.cursor()
     result = cur.execute("SELECT value FROM settings "
                          "WHERE name='homepage'").fetchone()
+
+    cur.close()
+    con.close()
+
     return result[0]
+
+
+def get_variable():
+    con = sqlite3.connect('database.sql')
+    cur = con.cursor()
+
+    result = cur.execute("SELECT value FROM settings "
+                         "WHERE name = 'collect statistic'").fetchone()
+
+    return True if result[0].lower() == 'true' else False
 
 
 create_database()
