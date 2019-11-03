@@ -343,16 +343,15 @@ class SettingDialog(QDialog):
         main_layout = QHBoxLayout()
 
         self.settings_layout = QVBoxLayout()
-        self.settings_layout.addWidget(headline, alignment=Qt.AlignHCenter)
+        self.settings_layout.addWidget(headline, alignment=Qt.AlignLeft)
         self.settings_layout.addWidget(collect_statistic,
-                                       alignment=Qt.AlignHCenter)
+                                       alignment=Qt.AlignLeft)
         self.settings_layout.addWidget(statistic_button,
-                                       alignment=Qt.AlignHCenter)
+                                       alignment=Qt.AlignLeft)
         self.settings_layout.addWidget(clear_statistic_button,
-                                       alignment=Qt.AlignHCenter)
+                                       alignment=Qt.AlignLeft)
 
         main_layout.addLayout(self.settings_layout)
-        main_layout.setAlignment(Qt.AlignHCenter)
 
         self.setLayout(main_layout)
 
@@ -367,7 +366,7 @@ class SettingDialog(QDialog):
             self.table_widget.setHorizontalHeaderLabels(titles)
 
             self.settings_layout.addWidget(self.table_widget,
-                                           alignment=Qt.AlignHCenter)
+                                           alignment=Qt.AlignLeft)
             self.update()
         else:
             self.table_widget.setRowCount(len(result))
@@ -382,7 +381,7 @@ class SettingDialog(QDialog):
 
             self.table_widget.resizeColumnsToContents()
             self.settings_layout.addWidget(self.table_widget,
-                                           alignment=Qt.AlignHCenter)
+                                           alignment=Qt.AlignLeft)
             self.update()
 
     @staticmethod
