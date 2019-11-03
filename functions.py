@@ -30,24 +30,22 @@ def statistic(browser):
     cur = con.cursor()
 
     url = browser.url().toString()
-    if not url.startswith('https://www.google.com/search'):
-        url = url.replace('www.', '').split('?')[0]
-        print(url)
+    url = url.replace('www.', '').split('?')[0]
 
-        result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
+    result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
+                         (url,)).fetchone()
+
+    if result[0] == 0:
+        cur.execute("INSERT INTO Pages('url', 'count') VALUES(?, 1)",
+                    (url,))
+        con.commit()
+    else:
+        result = cur.execute("SELECT id, count FROM Pages WHERE url = ?",
                              (url,)).fetchone()
-
-        if result[0] == 0:
-            cur.execute("INSERT INTO Pages('url', 'count') VALUES(?, 1)",
-                        (url,))
-            con.commit()
-        else:
-            result = cur.execute("SELECT id, count FROM Pages WHERE url = ?",
-                                 (url,)).fetchone()
-            page_id, count = result
-            cur.execute("UPDATE Pages SET count = ? WHERE id = ?",
-                        (count + 1, page_id))
-            con.commit()
+        page_id, count = result
+        cur.execute("UPDATE Pages SET count = ? WHERE id = ?",
+                    (count + 1, page_id))
+        con.commit()
 
     cur.close()
     con.close()
