@@ -31,8 +31,8 @@ class MainWindow(QMainWindow):
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
         self.tabs.currentChanged.connect(self.current_tab_changed)
-        self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
         self.tabs.tabCloseRequested.connect(self.close_current_tab)
+        self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
 
         self.setCentralWidget(self.tabs)
 
@@ -84,26 +84,25 @@ class MainWindow(QMainWindow):
         font = QFont('sans-serif')
         font.setPointSize(13)
 
-        self.url_bar = QLineEdit()
-        self.url_bar.setFont(font)
-        self.url_bar.returnPressed.connect(self.navigate_to_url)
-        nav_bar.addWidget(self.url_bar)
+        self.urlbar = QLineEdit()
+        self.urlbar.setFont(font)
+        self.urlbar.returnPressed.connect(self.navigate_to_url)
+        nav_bar.addWidget(self.urlbar)
 
-        new_homepage_button = QAction(QIcon(get_image('add_tab.svg')),
-                                      'Make this page home', self)
-        new_homepage_button.setObjectName('new_homepage_button')
-        new_homepage_button.setStatusTip('Make this page home')
-        new_homepage_button.triggered.connect(self.action)
-        nav_bar.addAction(new_homepage_button)
+        new_tab_button = QAction(QIcon(get_image('add_tab.svg')),
+                                 'Add new tab', self)
+        new_tab_button.setStatusTip('Add new tab')
+        new_tab_button.triggered.connect(lambda: self.add_new_tab())
+        nav_bar.addAction(new_tab_button)
 
         # Create and customize file menu
         file_menu = self.menuBar().addMenu('&File')
 
-        new_tab_action = QAction(QIcon(get_image('add_tab.svg')), '&New tab',
-                                 self)
-        new_tab_action.setStatusTip('Open a new tab')
-        new_tab_action.triggered.connect(lambda: self.add_new_tab())
-        file_menu.addAction(new_tab_action)
+        new_home_action = QAction('&Make this page home', self)
+        new_home_action.setObjectName('new_homepage_button')
+        new_home_action.setStatusTip('Make this page home')
+        new_home_action.triggered.connect(self.action)
+        file_menu.addAction(new_home_action)
 
         # Create and customize help menu
         help_menu = self.menuBar().addMenu('&Help')
@@ -128,9 +127,8 @@ class MainWindow(QMainWindow):
     # Functions for correct work of the tab bar
     def current_tab_changed(self, index):
         qurl = self.tabs.currentWidget().url()
-        self.update_url_bar(qurl, self.tabs.currentWidget())
+        self.update_urlbar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
-
 
     def close_current_tab(self, index):
         if self.tabs.count() < 2:
@@ -148,10 +146,10 @@ class MainWindow(QMainWindow):
         self.tabs.currentWidget().setUrl(QUrl(get_homepage()))
 
     def navigate_to_url(self):
-        url = self.url_bar.text()
+        url = self.urlbar.text()
 
         try:
-            # Check that the string obtained from url_bar is a link
+            # Check that the string obtained from urlbar is a link
             if url.startswith('https://') or url.startwith('http://'):
                 request = requests.get(url)
             else:
@@ -181,7 +179,7 @@ class MainWindow(QMainWindow):
             cls.update_title(cls.tabs.currentWidget())
 
         if qurl is None:
-            qurl = QUrl("https://google.com")
+            qurl = QUrl("https://www.google.com")
 
         browser = QWebEngineView()
         page = WebEnginePage(browser)
@@ -192,7 +190,7 @@ class MainWindow(QMainWindow):
         self.tabs.setCurrentIndex(index)
 
         browser.urlChanged.connect(lambda url:
-                                   self.update_url_bar(url, browser))
+                                   self.update_urlbar(url, browser))
         browser.loadFinished.connect(lambda: combining_func(self))
 
     @staticmethod
@@ -214,7 +212,7 @@ class MainWindow(QMainWindow):
         title = self.tabs.currentWidget().page().title()
         self.setWindowTitle(f"{title} - Sibenshtern's browser")
 
-    def update_url_bar(self, qurl, browser):
+    def update_urlbar(self, qurl, browser):
         # If the signal is not from the current tab, ignore it
         if browser != self.tabs.currentWidget():
             return None
@@ -224,12 +222,11 @@ class MainWindow(QMainWindow):
             else:
                 self.connection_icon.setPixmap(QPixmap(get_image('http.svg')))
 
-            self.url_bar.setText(qurl.toString())
-            self.url_bar.setCursorPosition(0)
+            self.urlbar.setText(qurl.toString())
+            self.urlbar.setCursorPosition(0)
 
         if get_variable():
-            if not qurl.toString().startswith('https://google.com/search'):
-                statistic(self.tabs.currentWidget())
+            browser.loadFinished.connect(lambda: statistic(self.tabs.currentWidget()))
 
     def action(self):
         sender = self.sender().objectName()
@@ -251,6 +248,18 @@ class MainWindow(QMainWindow):
                 self.setting_dialog()
 
 
+class TabBar(QTabBar):
+
+    def tabSizeHint(self, index):
+        height = 28
+
+        if self.count() > 6:
+            return QSize(int(self.width() / self.count()), height)
+        else:
+            size = QTabBar.tabSizeHint(self, index)
+            return QSize(size.width(), height)
+
+
 class WebEnginePage(QWebEnginePage):
 
     def createWindow(self, window_type):
@@ -263,18 +272,6 @@ class WebEnginePage(QWebEnginePage):
         page = self.sender()
         self.setUrl(url)
         page.deleteLater()
-
-
-class TabBar(QTabBar):
-
-    def tabSizeHint(self, index):
-        height = 28
-
-        if self.count() > 6:
-            return QSize(int(self.width() / self.count()), height)
-        else:
-            size = QTabBar.tabSizeHint(self, index)
-            return QSize(size.width(), height)
 
 
 class AboutDialog(QDialog):
@@ -311,6 +308,8 @@ class SettingDialog(QDialog):
 
     def __init__(self, *args, **kwargs):
         super(SettingDialog, self).__init__(*args, **kwargs)
+
+        self.setGeometry(300, 300, 400, 300)
 
         # Connect database
         self.con = sqlite3.connect('database.sql')
@@ -359,23 +358,32 @@ class SettingDialog(QDialog):
 
     def show_table(self):
         result = self.cur.execute('Select * from Pages').fetchall()
+
         if not result:
-            return None
+            self.table_widget.setRowCount(0)
+            self.table_widget.setColumnCount(3)
 
-        self.table_widget.setRowCount(len(result))
-        self.table_widget.setColumnCount(len(result[0]))
+            titles = [description[0] for description in self.cur.description]
+            self.table_widget.setHorizontalHeaderLabels(titles)
 
-        titles = [description[0] for description in self.cur.description]
-        self.table_widget.setHorizontalHeaderLabels(titles)
+            self.settings_layout.addWidget(self.table_widget,
+                                           alignment=Qt.AlignHCenter)
+            self.update()
+        else:
+            self.table_widget.setRowCount(len(result))
+            self.table_widget.setColumnCount(len(result[0]))
 
-        for i, elem in enumerate(result):
-            for j, val in enumerate(elem):
-                self.table_widget.setItem(i, j, QTableWidgetItem(str(val)))
+            titles = [description[0] for description in self.cur.description]
+            self.table_widget.setHorizontalHeaderLabels(titles)
 
-        self.table_widget.resizeColumnsToContents()
-        self.settings_layout.addWidget(self.table_widget,
-                                       alignment=Qt.AlignHCenter)
-        self.update()
+            for i, elem in enumerate(result):
+                for j, val in enumerate(elem):
+                    self.table_widget.setItem(i, j, QTableWidgetItem(str(val)))
+
+            self.table_widget.resizeColumnsToContents()
+            self.settings_layout.addWidget(self.table_widget,
+                                           alignment=Qt.AlignHCenter)
+            self.update()
 
     @staticmethod
     def change_variable(state):
@@ -392,12 +400,14 @@ class SettingDialog(QDialog):
 
         if result == 1:
             clear_statistic()
+            self.show_table()
 
 
 class ConfirmDialog(QDialog):
 
     def __init__(self, *args, **kwargs):
         super(ConfirmDialog, self).__init__(*args, **kwargs)
+
         true_button = QDialogButtonBox.Ok
         false_button = QDialogButtonBox.Cancel
 

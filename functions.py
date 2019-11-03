@@ -31,6 +31,9 @@ def statistic(browser):
 
     url = browser.url().toString()
     if not url.startswith('https://www.google.com/search'):
+        url = url.replace('www.', '').split('?')[0]
+        print(url)
+
         result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
                              (url,)).fetchone()
 
