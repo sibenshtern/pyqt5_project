@@ -30,7 +30,7 @@ def statistic(browser):
     cur = con.cursor()
 
     url = browser.url().toString()
-    if not url.startswith('https://google.com/search'):
+    if not url.startswith('https://www.google.com/search'):
         result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
                              (url,)).fetchone()
 

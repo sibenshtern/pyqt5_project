@@ -131,9 +131,6 @@ class MainWindow(QMainWindow):
         self.update_url_bar(qurl, self.tabs.currentWidget())
         self.update_title(self.tabs.currentWidget())
 
-        if get_variable():
-            if not qurl.toString().startswith('https://google.com/search'):
-                statistic(self.tabs.currentWidget())
 
     def close_current_tab(self, index):
         if self.tabs.count() < 2:
@@ -229,6 +226,10 @@ class MainWindow(QMainWindow):
 
             self.url_bar.setText(qurl.toString())
             self.url_bar.setCursorPosition(0)
+
+        if get_variable():
+            if not qurl.toString().startswith('https://google.com/search'):
+                statistic(self.tabs.currentWidget())
 
     def action(self):
         sender = self.sender().objectName()
