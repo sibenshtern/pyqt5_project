@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
             self.urlbar.setCursorPosition(0)
 
         if get_variable():
-            browser.loadFinished.connect(lambda: statistic(self.tabs.currentWidget()))
+            statistic(self.tabs.currentWidget())
 
     def action(self):
         sender = self.sender().objectName()
@@ -330,7 +330,8 @@ class SettingDialog(QDialog):
 
         collect_statistic = QCheckBox('Collect statistic')
         collect_statistic.setFont(other_font)
-        collect_statistic.toggle()
+        if get_variable():
+            collect_statistic.toggle()
         collect_statistic.stateChanged.connect(self.change_variable)
 
         statistic_button = QPushButton('See statistic')

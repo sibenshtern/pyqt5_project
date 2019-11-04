@@ -30,11 +30,9 @@ def statistic(browser):
     cur = con.cursor()
 
     url = browser.url().toString()
-    url = url.replace('www.', '').split('?')[0]
 
     result = cur.execute("SELECT COUNT(1), id FROM Pages WHERE url = ?",
                          (url,)).fetchone()
-
     if result[0] == 0:
         cur.execute("INSERT INTO Pages('url', 'count') VALUES(?, 1)",
                     (url,))
