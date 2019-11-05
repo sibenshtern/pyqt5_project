@@ -150,7 +150,7 @@ class MainWindow(QMainWindow):
 
         try:
             # Check that the string obtained from urlbar is a link
-            if url.startswith('https://') or url.startwith('http://'):
+            if url.startswith('https:') or url.startswith('http:'):
                 request = requests.get(url)
             else:
                 request = requests.get(f'http://{url}')
